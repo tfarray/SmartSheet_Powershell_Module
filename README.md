@@ -23,26 +23,7 @@ To be able to use this module you need :
  - Once the module is imported, you need to store it (it will store encrypted using windows Data protection API)
   > Set-SmartSheetAPIToken [your Token]
   
-  To use the Module :
-  > get-smartsheet
-  Will show you all the smartsheets you are able to read.
-  
-  > $MySS = get-smartsheet MySmartsheet*
-  This will load (only if there is a single SmartSheet corresponding to the name) the smartsheet to the variable $MySS
-  
-  > $MySS = get-smartsheet -ID 123412341234
-  This will load the EXACT smartsheet to the variable.
-  
-  > $MySS.table
-  This will show you your smartsheet
-  
-  If you have hiearchy starting at line 3
-  > $MySS.table[2].__Childnode
-  This will show the Child nodes
-  
-  > $MySS.table[5].ColumnName = "New Value"
-  > $MySS.table[5].update()
-  Those 2 commands will update the smartsheet at line 6, the column called "ColumnName" and set the cell to the value "New Value"
+  Please check the wiki for instructions
   
   
   Regards to all

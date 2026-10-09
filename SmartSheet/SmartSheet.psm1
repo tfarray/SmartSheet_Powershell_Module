@@ -1,5 +1,3 @@
-# SmartSheet Version 2.0
-# Developped by Thomas Farray .:|:. Cisco .:|:.
 # Updated to work with API V2
 
 if (!(get-module ModulesUpdater)) { import-module ModulesUpdater }
@@ -166,13 +164,13 @@ function ConvertTo-SmartSheetRowObject {
 	param($JasonRow,$SS)
 	process {
 		# write-verbose $JasonRow.count
+		if ($JasonRow | ? { $_.parentId }) { $Hiearchy = $true } else { $Hiearchy = $false } 
 		foreach ($JSR in @($JasonRow)) {
 			# First we put all data and we create the object
 			# $Properties = $ss.Colname2ID.Clone()
-			$Properties = @{}
+			if ($Hiearchy) { $ValuesToShow = @("H") ;$Properties = @{"H" = $null} } else { $ValuesToShow = @() ; $Properties = @{}}
 			$Properties.add("__id",$JSR.id)
 			$Properties.add("__smartsheet",$SS)
-			$ValuesToShow = @()
 			$JSR.cells | select columnId,value | ? { $_.columnId -in $SS.ID2Colname.Keys } | % {
 				$ColName = $SS.ID2Colname.($_.columnId)
 				$Properties.add($ColName,$_.value)
@@ -192,21 +190,26 @@ function ConvertTo-SmartSheetRowObject {
 				# write-verbose "Addin Data To parent & child"
 				$Parent = $ss.Table_ID2PSo.($JSR.parentId)
 				add-member -inputobject $NewRow noteproperty -name "__ParentNode" -value @($Parent)
+				
+				#Managing Tree
+				if (!$Parent.__Childnode) { $NewRow.H = "-|" } else {  $NewRow.H = " |" }
+				if ($Parent.H) { $NewRow.H = ($Parent.H -replace "-"," ") + $NewRow.H }
+					
 				if ($Parent.__Childnode) { 
 					$Parent.__Childnode += $NewRow
 				} else { 
 					add-member -inputobject $Parent noteproperty -name "__Childnode" -value @($NewRow)
 				}
-			} else {
-				$SS.table += @($NewRow)
-			}
-
+			} 
+			$SS.table += @($NewRow)
+			
 			# We now add to the Smartsheet the new row and we add All methods
 			$SS.Table_ID2PSo.add($JSR.id,$NewRow)
 			Add-Member -InputObject $NewRow -MemberType ScriptMethod -Name 'Update' -Value $SSUpdateRowBlock #-PassThru
 			Add-Member -InputObject $NewRow -MemberType ScriptMethod -Name 'AddChild' -Value $SSAddNewChild #-PassThru
 			Add-Member -InputObject $NewRow -MemberType ScriptMethod -Name 'AddRow' -Value $SSAddNewRow #-PassThru
 			Add-Member -InputObject $NewRow -MemberType ScriptMethod -Name 'Delete' -Value $SSRemoveRow #-PassThru
+			
 		}
 	}
 }
